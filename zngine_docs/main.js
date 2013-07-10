@@ -52,6 +52,7 @@ require([
 	var templateProject        = Handlebars.compile( $("#template-project").html() );
 	var templateSections       = Handlebars.compile( $("#template-sections").html() );
 	var templateSidenav        = Handlebars.compile( $("#template-sidenav").html() );
+	var templateRundown        = Handlebars.compile( $("#template-rundown").html() );
 	
 	/**
 	 * Data transform.
@@ -100,7 +101,6 @@ require([
 
 	});
 
-	console.log("API By Group & REST Verb, Sorted: ", apiByGroupAndRestVerbSorted)
 
 	/**
 	 * Sort api by group - name - title.
@@ -111,15 +111,11 @@ require([
 		if(group.indexOf(".js") != -1)
 			return
 
-		console.log("Parsing group/verbs", group, verbs)
 		// Titel der ersten Einträge von group[].name[] ermitteln (name hat Versionsliste)
 			
 		var titles = {};
 		$.each(verbs, function(verb, endpoints) {
-			// console.log("Verb/endpoints", verb, endpoints)
-
 			$.each(endpoints, function(index, endpoint) {
-				// console.log("Processing endpoint", endpoint)
 				
 				var title = endpoint.title;
 				if(title)
@@ -155,13 +151,55 @@ require([
 	 * Create Navigationlist.
 	 */
 	var nav = [];
+	var rundown = {
+		totals : {
+			endpoints : 0,
+			groups : 0
+		},
+		tests_passing : [],
+		tests_failing : [],
+		tests_unknown : [],
+		endpoints_active : [],
+		endpoints_deprecated : [],
+		endpoints_inactive : [],
+		endpoints_unknown : [],
+		todos : []
+	}
+
+	var processEndpointRundown = function(entry, group) {
+		rundown.totals.endpoints++
+
+		if(entry.apistatus_active) {
+			rundown.endpoints_active.push( entry )
+		} else if(entry.apistatus_deprecated) {
+			rundown.endpoints_deprecated.push( entry )
+		} else if(entry.apistatus_inactive) {
+			rundown.endpoints_inactive.push( entry )
+		} else {
+			rundown.endpoints_unknown.push( entry )
+		}
+
+		if(entry.apitest_passing) {
+			rundown.tests_passing.push( entry )
+		} else if(entry.apitest_failing) {
+			rundown.tests_failing.push( entry )
+		} else {
+			rundown.tests_unknown.push( entry )
+		}
+
+		if(entry.todo) {
+			rundown.todos.push( entry )
+		}
+	}
 
 	_.each(apiByGroupAndRestVerbSorted, function(verbs, group) {
 
 		if(group.indexOf(".js") != -1)
 			return
 
-		console.log("Nav Header:", group, verbs)
+		// Valid group, get processing!
+		rundown.totals.groups++
+
 		// Mainmenu-Entry.
 		nav.push({
 			group: group,
@@ -172,7 +210,6 @@ require([
 		// Add Submenu.
 		var oldName = "";
 		_.each(verbs, function(endpoints, verb) {
-			// console.log("Processing endpoints/verb", endpoints, verb)
 			nav.push({
 				verb : verb,
 				isVerb : true,
@@ -181,7 +218,9 @@ require([
 			})
 
 			_.each(endpoints, function(entry) {
-				// console.log("Processing entry", entry)
+
+				processEndpointRundown(entry, group)
+
 				nav.push({
 					title: entry.title,
 					group: group,
@@ -233,6 +272,12 @@ require([
 	 * Render ApiDoc, general documentation.
 	 */
 	$("#apidoc").append( templateApidoc(apiProject) );
+
+	/**
+	 * Render Project Rundown
+	 */
+	console.log("Rundown", rundown)
+	$("#rundown").append( templateRundown(rundown) );
 
 	/**
 	 *  Render Sections and Articles
@@ -293,6 +338,13 @@ require([
 		};
 		$("#sections").append( templateSections(fields) );
 	}); // forEach
+
+	/**
+	 * Initialize Tooltips
+	 */
+	$("a[data-tooltip]").tooltip({
+		html : true
+	})
 
 	/**
 	 * Bootstrap Scrollspy.

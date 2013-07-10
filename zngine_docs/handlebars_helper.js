@@ -15,14 +15,38 @@ define([
 	 * Replace underscore with space.
 	 * @param string text
 	 */
-	Handlebars.registerHelper("underscoreToSpace", function(text){
+	Handlebars.registerHelper("underscoreToSpace", function underscoreToSpace(text){
 		return text.replace(/(_+)/g, " ");
 	});
+
+	Handlebars.registerHelper("apiStatusLabel", function apiStatusLabel(endpoint) {
+		var labelClass = "inverse"
+		var alt = "<p><strong>"+ endpoint.group.replace(/(_+)/g," ") +" - "+ endpoint.name +"</strong><br /><small>"+ endpoint.title +"</small></p>"
+		if(endpoint.apistatus_active) {
+			labelClass = "success"
+		} else if(endpoint.apistatus_deprecated) {
+			labelClass = "warning"
+		} else if(endpoint.apistatus_inactive) {
+			labelClass = "important"
+		}
+		return new Handlebars.SafeString('<a data-tooltip href="#api-'+ endpoint.group +'-'+ endpoint.name +'" alt="'+ alt +'" title="'+ alt +'"><span class="label label-'+ labelClass +'">'+ endpoint.type.toUpperCase() +' <code style="font-size: 8px;">'+ endpoint.url +'</code></span></a>')
+	})
+
+	Handlebars.registerHelper("testStatusLabel", function testStatusLabel(endpoint) {
+		var labelClass = "inverse"
+		var alt = "<p><strong>"+ endpoint.group.replace(/(_+)/g," ") +" - "+ endpoint.name +"</strong><br /><small>"+ endpoint.title +"</small></p>"
+		if(endpoint.apitest_passing) {
+			labelClass = "success"
+		} else if(endpoint.apitest_failing) {
+			labelClass = "important"
+		}
+		return new Handlebars.SafeString('<a data-tooltip href="#api-'+ endpoint.group +'-'+ endpoint.name +'" alt="'+ alt +'" title="'+ alt +'"><span class="label label-'+ labelClass +'">'+ endpoint.type.toUpperCase() +' <code style="font-size: 8px;">'+ endpoint.url +'</code></span></a>')
+	})
 	
 	/**
 	 * 
 	 */
-	Handlebars.registerHelper("assign", function(name) {
+	Handlebars.registerHelper("assign", function assign(name) {
 		if(arguments.length > 0)
 		{
 			var type = typeof(arguments[1]);
@@ -36,14 +60,14 @@ define([
 	/**
 	 * 
 	 */
-	Handlebars.registerHelper("nl2br", function(text) {
+	Handlebars.registerHelper("nl2br", function nl2br(text) {
 		return _handlebarsNewlineToBreak(text);
 	});
 
 	/**
 	 * 
 	 */
-	Handlebars.registerHelper("if_eq", function(context, options) {
+	Handlebars.registerHelper("if_eq", function if_eq(context, options) {
 		if(context === options.hash.compare) return options.fn(this);
 		return options.inverse(this);
 	});
@@ -51,7 +75,7 @@ define([
 	/**
 	 * 
 	 */
-	Handlebars.registerHelper("subTemplate", function(name, sourceContext) {
+	Handlebars.registerHelper("subTemplate", function subTemplate(name, sourceContext) {
 		var template = Handlebars.compile($("#template-" + name).html());
 		var templateContext = $.extend({}, this, sourceContext.hash);
 		return new Handlebars.SafeString( template(templateContext) );
@@ -60,14 +84,18 @@ define([
 	/**
 	 * 
 	 */
-	Handlebars.registerHelper("toLowerCase", function(value) {
+	Handlebars.registerHelper("toLowerCase", function toLowerCase(value) {
 		return (value && typeof value === "string") ? value.toLowerCase() : '';
+	});
+
+	Handlebars.registerHelper("toUpperCase", function toUpperCase(value) {
+		return (value && typeof value === "string") ? value.toUpperCase() : '';
 	});
 
 	/**
 	 * 
 	 */
-	Handlebars.registerHelper("splitFill", function(value, splitChar, fillChar) {
+	Handlebars.registerHelper("splitFill", function splitFill(value, splitChar, fillChar) {
 		var splits = value.split(splitChar);
 		
 		return new Array(splits.length).join(fillChar) + splits[splits.length - 1];
@@ -87,7 +115,7 @@ define([
 	/**
 	 * 
 	 */
-	Handlebars.registerHelper("each_compare_keys", function(source, compare, options) {
+	Handlebars.registerHelper("each_compare_keys", function each_compare_keys(source, compare, options) {
 		var newSource = [];
 		if(source)
 		{
@@ -117,21 +145,21 @@ define([
 	/**
 	 * 
 	 */
-	Handlebars.registerHelper("each_compare_field", function(source, compare, options) {
+	Handlebars.registerHelper("each_compare_field", function each_compare_field(source, compare, options) {
 		return _handlebarsEachCompared("field", source, compare, options);
 	});
 
 	/**
 	 * 
 	 */
-	Handlebars.registerHelper("each_compare_title", function(source, compare, options) {
+	Handlebars.registerHelper("each_compare_title", function each_compare_title(source, compare, options) {
 		return _handlebarsEachCompared("title", source, compare, options);
 	});
 
 	/**
 	 * 
 	 */
-	Handlebars.registerHelper("showDiff", function(source, compare, options) {
+	Handlebars.registerHelper("showDiff", function showDiff(source, compare, options) {
 		var ds = "";
 		if(source === compare) ds = source;
 		else

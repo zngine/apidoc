@@ -12,6 +12,66 @@
 </head>
 <body>
 
+<script id="template-rundown" type="text/x-handlebars-template">
+	<h3>RUNDOWN</h3>
+	<p class="text-info lead">This API has <span class="badge">{{totals.endpoints}}</span> endpoints, separated into <span class="badge">{{totals.groups}}</span> groups. Out of <span class="badge">{{totals.endpoints}}</span> endpoints, <span class="badge badge-success">{{endpoints_active.length}}</span> are active, <span class="badge badge-warning">{{endpoints_deprecated.length}}</span> are deprecated, <span class="badge badge-important">{{endpoints_inactive.length}}</span> are inactive and <span class="badge badge-inverse">{{endpoints_unknown.length}}</span> are unaccounted for. <span class="badge badge-success">{{tests_passing.length}}</span> of these endpoints have passing unit tests, <span class="badge badge-important">{{tests_failing.length}}</span> of them have failing unit tests, and we are just not sure about the other <span class="badge badge-inverse">{{tests_unknown.length}}</span>.</p>
+
+	<h3>TODO ITEMS</h3>
+		{{#each todos}}
+			<h4>{{underscoreToSpace this.group}} - {{apiStatusLabel this}}</h4>
+			{{#each this.todo}}
+				<p class="text-info">{{underscoreToSpace this}}</p>
+			{{/each}}
+		{{/each}}
+	</h3>
+
+	<h3>UNIT TESTING STATUS</h3>
+	<h4>PASSING</h4>
+	<p>
+		{{#each tests_passing}}
+			{{testStatusLabel this}}
+		{{/each}}
+	</p>
+	<h4>FAILING</h4>
+	<p>
+		{{#each tests_failing}}
+			{{testStatusLabel this}}
+		{{/each}}
+	</p>
+	<h4>UNKNOWN</h4>
+	<p>
+		{{#each tests_unknown}}
+			{{testStatusLabel this}}
+		{{/each}}
+	</p>
+	<h3>ENDPOINT HEALTH</h3>
+	<h4>ACTIVE</h4>
+	<p>
+		{{#each endpoints_active}}
+			{{apiStatusLabel this}}
+		{{/each}}
+	</p>
+	<h4>DEPRECATED</h4>
+	<p>
+		{{#each endpoints_deprecated}}
+			{{apiStatusLabel this}}
+		{{/each}}
+	</p>
+	<h4>INACTIVE</h4>
+	<p>
+		{{#each endpoints_inactive}}
+			{{apiStatusLabel this}}
+		{{/each}}
+	</p>
+	<h4>UNKNOWN</h4>
+	<p>
+		{{#each endpoints_unknown}}
+			{{apiStatusLabel this}}
+		{{/each}}
+	</p>
+
+</script>
+
 <script id="template-sidenav" type="text/x-handlebars-template">
 	<ul class="sidenav nav nav-list">
 	{{#each nav}}
@@ -97,84 +157,67 @@
 			</div>
 		</div>
 		<div class="clearfix"></div>
+		
+		<pre class="prettyprint language-html" data-type="{{toLowerCase article.type}}"><code>{{article.url}}</code></pre>
 
-		<table class="bordered">
-			<thead>
-				<th style="width: 50%;">TEST STATUS</th>
-				<th style="width: 50%;">API STATUS</th>
-			</thead>
-			<tbody>
-				<tr>
-					<td>
-						{{#if article.apitest_passing}}
-							<div class="alert alert-success">
-								<strong>PASSING!</strong> The unit test associated with this endpoint is passing successfully.
-							</div>
-						{{/if}}
+		<div class="clearfix"></div>
 
-						{{#if article.apitest_failing}}
-							<div class="alert alert-error">
-								<strong>FAILING!</strong> The unit test associated with this endpoint is failing. Fix it!
-							</div>
-						{{/if}}
+		<h4>TEST STATUS</h4>
+		{{#if article.apitest_passing}}
+			<div class="alert alert-success">
+				<strong>PASSING!</strong> The unit test associated with this endpoint is passing successfully.
+			</div>
+		{{/if}}
 
-						{{#unless article.apitest_passing}}
-							{{#unless article.apitest_failing}}
-								<div class="alert alert-info">
-									<strong>NO TEST!</strong> There does not appear to be a unit test for this endpoint. 
-								</div>
-							{{/unless}}
-						{{/unless}}
-					</td>
-					<td>
-						{{#if article.apistatus_active}}
-							<div class="alert alert-success">
-								<strong>ACTIVE!</strong> This endpoint is active and in use by the Zngine API.
-							</div>
-						{{/if}}
-						{{#if article.apistatus_inactive}}
-							<div class="alert alert-error">
-								<strong>INACTIVE!</strong> This endpoint is inactive and <strong>should not</strong> be used.
-							</div>
-						{{/if}}
-						{{#if article.apistatus_deprecated}}
-							<div class="alert alert-warning">
-								<strong>DEPRECATED!</strong> This endpoint is deprecated and all code accessing this endpoint should be fixed soon.
-							</div>
-						{{/if}}
+		{{#if article.apitest_failing}}
+			<div class="alert alert-error">
+				<strong>FAILING!</strong> The unit test associated with this endpoint is failing. Fix it!
+			</div>
+		{{/if}}
 
-						{{#unless article.apistatus_active}}
-							{{#unless article.apistatus_inactive}}
-								{{#unless article.apistatus_deprecated}}
-									<div class="alert alert-info">
-										<strong>UNKNOWN!</strong> The health status of this endpoint could not be determined. 
-									</div>
-								{{/unless}}
-							{{/unless}}
-						{{/unless}}
-					</td>
-				</tr>
-			</tbody>
-		</table>
+		{{#unless article.apitest_passing}}
+			{{#unless article.apitest_failing}}
+				<div class="alert alert-info">
+					<strong>NO TEST!</strong> There does not appear to be a unit test for this endpoint. 
+				</div>
+			{{/unless}}
+		{{/unless}}
+
+		<h4>API DEPRECATION STATUS</h4>
+		{{#if article.apistatus_active}}
+			<div class="alert alert-success">
+				<strong>ACTIVE!</strong> This endpoint is active and in use by the Zngine API.
+			</div>
+		{{/if}}
+		{{#if article.apistatus_inactive}}
+			<div class="alert alert-error">
+				<strong>INACTIVE!</strong> This endpoint is inactive and <strong>should not</strong> be used.
+			</div>
+		{{/if}}
+		{{#if article.apistatus_deprecated}}
+			<div class="alert alert-warning">
+				<strong>DEPRECATED!</strong> This endpoint is deprecated and all code accessing this endpoint should be fixed soon.
+			</div>
+		{{/if}}
+
+		{{#unless article.apistatus_active}}
+			{{#unless article.apistatus_inactive}}
+				{{#unless article.apistatus_deprecated}}
+					<div class="alert alert-info">
+						<strong>UNKNOWN!</strong> The deprecation status of this endpoint could not be determined. 
+					</div>
+				{{/unless}}
+			{{/unless}}
+		{{/unless}}
 
 		<div class="clearfix"></div>
 
 		{{#if article.todo}}
-			<h3>{{article.todo.length}} @TODO Items</h3>
-			<table>
-				<tbody>
-					{{#each article.todo}}
-						<tr>
-							<td style="width: 8%;">
-								<span class="label label-info">@TODO</span>
-							</td>
-							<td>
-								<p class="muted">{{underscoreToSpace this}}</p>
-							</td>
-						</tr>
-					{{/each}}
-				</tbody>
-			</table>
+			<h4>{{article.todo.length}} @TODO Items</h4>
+
+			{{#each article.todo}}
+				<div class="alert alert-info">{{underscoreToSpace this}}</div>
+			{{/each}}
 
 			<div class="clearfix"></div>
 		{{/if}}
@@ -183,7 +226,6 @@
 			<p>{{{nl2br article.description}}}</p>
 		{{/if}}
 
-		<pre class="prettyprint language-html" data-type="{{toLowerCase article.type}}"><code>{{article.url}}</code></pre>
 
 		{{#if article.permission.name}}
 			<p>
@@ -540,6 +582,7 @@
 		</div>
 		<div id="content">
 			<div id="project"></div>
+			<div id="rundown"></div>
 			<div id="sections"></div>
 			<div id="apidoc"></div>
 			<div id="generator"></div>
